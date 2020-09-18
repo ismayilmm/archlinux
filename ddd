@@ -1,0 +1,103 @@
+Dhcpcd.service not found:
+Eğer bu hatanı alıyorsanızsa, ağ bağlantılarınızı düzeltmek için bu 2 yöntemi deneyin:
+
+Yöntem 1: sistemd aracılığıyla Arch Linux'ta Statik IP adresini yapılandırın
+
+Aşağıdaki gibi bir ağ profili oluşturun:
+<pre>
+	$ sudo nano /etc/systemd/network/eno1.network
+</pre>
+
+Aşağıdaki metinde ağ adaptörünüzün adıyla eno1'i değiştirin. Ağ adaptörünüzün adını öğrenmek için "ip a" komutunu kullanabilirsiniz.
+<pre> 
+	[Match]
+	Name=eno1
+	[Network]
+	Address=192.168.1.102/24
+	Gateway=192.168.1.1
+	DNS=8.8.8.8
+	DNS=8.8.4.4
+</pre>
+
+Dosyayı kaydedin ve kapatın.
+Bi sonraki adımda netctl servislerini devre dışı bırakmak lazım. Aktif olan servisleri görüntülemek için aşağıdaki komutu kullanabilirsiniz:
+<pre>
+	$ sudo systemctl list-unit-files
+</pre>
+
+
+Netctl servislerini bulduğunuzda aşağıdaki komutu kullanarak devre dışı bırakın
+<pre>
+	$sudo systemctl disable netctl@<service name>
+</pre>
+
+Sonra netctl paketini silmeniz gerekiyor
+<pre>
+	$ pacman -Rns netctl
+</pre>
+
+Dhcpcd servisinin devre dışında olduğundan emin olun
+<pre>
+	$ systemctl stop dhcpcd
+</pre>
+
+Aşağıdaki komutla systemd-networkd servisini başlatın
+<pre>
+	$ systemctl enable systemd-networkd
+</pre>
+
+Sisteminizi ‘reboot now’ komutuyla yeniden başlatın
+
+İnternet bağlantınızı kontrol edin:
+<pre>
+	ping example.com
+</pre>
+
+
+
+
+Bağlantı probleminiz devam ediyorsa /etc/resolv.conf üzeri çözmeye çalışabilirsiniz
+
+Vim veya nano editörlerini kullanarak resolv.conf dosyasını düzenleyin
+<pre>
+	# nano /etc/resolv.conf
+</pre>
+
+ Dosyayı aşağıda olduğu gibi düzenleyin
+<pre>
+	nameserver # DNS server IP
+	nameserver # Domain Name of local host
+	nameserver # Which Domain to search
+</pre>
+
+Düzenlenmiş dosya örneği
+<pre>
+	nameserver 192.168.0.100
+	nameserver 8.8.8.8
+	nameserver 8.8.4.4
+</pre>
+
+
+############################################################
+
+Disk bölümü:
+First you have to check if you have UEFI or non-UEFI
+İlk adım olarak sisteminizin UEFI ya non-UEFI olduğuna bakmak lazım. 
+En kolay yolu /sys/firmware/efi dosyasına bakmaktır.
+<pre>
+	$ ls /sys/firmware/efi
+</pre>
+Eğer dosya varsa sisteminiz UEFI-dır
+
+Disk ayırmasından sonra sistem dosyalarını oluşturmak lazım.
+UEFI systemler için:
+<pre>
+	mkfs.fat -F32 /dev/sda1
+	mkfs.ext4 /dev/sda2
+</pre>
+
+non-UEFI sistemler için:
+<pre>
+	mkfs.ext4 /dev/sda1
+	mkfs.ext4 /dev/sda2
+</pre>
