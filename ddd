@@ -11,7 +11,7 @@ Aşağıdaki gibi bir ağ profili oluşturun:
 Aşağıdaki metinde ağ adaptörünüzün adıyla eno1'i değiştirin. Ağ adaptörünüzün adını öğrenmek için "ip a" komutunu kullanabilirsiniz.
 <pre> 
 	[Match]
-	Name=eno1
+	Name=enp0s25
 	[Network]
 	Address=192.168.1.102/24
 	Gateway=192.168.1.1
