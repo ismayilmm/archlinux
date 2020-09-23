@@ -1,0 +1,51 @@
+Dns records for mail servers 
+A record == IPv4 address) records map the domain name of a host to the IP address of that host (name-to-address mapping).
+@ A 1h 123.123.123.123
+An "A" record maps a name to an address. You will first need an A record for your mailserver. Your static IP address from your ISP was the first step, of course. For example, you might log into the web portal for the example.com domain and create an "A" record for "mail" for 192.0.2.21. This would create a mail.example.com published on the Internet. However, mailservers still wouldn't know that this is where to send mail. That's what "MX" records are for. 
+
+
+
+
+MX record == 
+Your MX record tells other mailservers the name of the server on the Internet to send mail to for your domain. It is a free text field, because it could have any name, including a name that is not part of your domain such as a name of a server from a mail hosting provider or a mail spam filter for example. If you have the Kerio Connect server with A record mail.example.com, you will need to create an MX record that just says "mail.example.com” as its value
+
+(mail exchange) records map a domain name to a mail server receiving email for that domain. MX records identify which mail servers others use to send email to a domain.
+Multiple MX records can be set up for a domain, each with a priority number, where lower numbers have higher priority. In the example below, if mail can't be delivered using the host with the higher priority (10), the host with the lower priority (20) will be used.
+@ MX 1h 10 mailhost1.example.com.
+@ MX 1h 20 mailhost2.example.com.
+
+If the priority numbers are the same (10 and 10), the MX records can be used to balance the load between hosts; either host will be chosen arbitrarily.
+@ MX 1h 10 mailhost1.example.com.
+@ MX 1h 10 mailhost2.example.com.
+
+PTR record == 
+The PTR record is a reverse lookup which maps the IP address to the name.
+Some mailservers will not trust mail coming from your server unless they can do a reverse DNS lookup. This takes two possible forms. Most mailservers care that a PTR record exists at all. Strict mailservers do a forward lookup on the name your mailserver introduces itself as such as mail.example.com, verify it is the IP address that is read off the connection, and do a PTR lookup on that IP address to see if it resolves to the same name.
+
+
+(pointer) records map the IP address of a host to the canonical (true) domain name for a host (address-to-name mapping). Known as reverse DNS lookup, the IP address is written in reverse and appended with the Address and Routing Parameter Area (arpa) top-level domain.
+PTR records are used as a security device and anti-spam measure; mail and other types of servers can do reverse DNS lookups to verify the identities of hosts.
+Usually, you will not manage PTR through Google Domains, because they need to be set by the owner of your IP address block (generally your ISP). Different IP block owners have different procedures for you to request these records. Please contact your provider for more information.
+Google Domains supports PTR records that reside in the DNS zone corresponding to the your domain, for the purposes of having your ISP create CNAME records that delegate to us the responsibility for reverse lookups of those specific addresses.
+If your provider delegates a PTR record to you, your provider will create a CNAME record that points to a PTR record that you manage through Google Domains. For example, suppose your server's A record looks like this:
+www     A  1h 111.222.33.4
+
+To delegate the PTR record to you, your provider must set the following CNAME. Note that the order of the 4 numbers comprising the IP address have been reversed:
+4.33.222.111.in-addr.arpa.  CNAME 1h ptr_www.example.com.
+
+Once these records are set, requests to reverse-lookup the IP address 111.222.33.4 will first go to your provider's record for 4.33.222.111.in-addr.arpa., which redirects to your record for ptr_www.example.com., which tells the requester that 111.222.33.4 corresponds to www.example.com.
+As a similar example for IPv6 addresses, if your server's AAAA record looks like this:
+www AAAA 1h 202:db80:1:2:3:4:567:89ab
+
+then its fully-specified IPv6 address is 0202:db80:0001:0002:0003:0004:0567:89ab. To obtain the CNAME record that your provider must set, reverse this address (digit-wise, ignoring the colons), putting dots between every digit and appending .ip6.arpa. (including the trailing dot):
+b.a.9.8.7.6.5.0.4.0.0.0.3.0.0.0.2.0.0.0.1.0.0.0.0.8.b.d.2.0.2.0.ip6.arpa.
+
+CNAME 1h ptr_www.example.com.
+
+SPF record ==
+SPF gives other mailservers a way to verify that mail claiming to be from your domain is from one of your IP addresses. They do this by checking a special TXT record you put in your DNS records. It is an interesting way to prevent mail spoofing.
+
+ (sender policy framework) is an open standard technical method. SPF specifies the mail servers that can send email from a domain.
+When a mail server sends out an email, the receiving server looks at the SPF of the domain. If the email was sent by a mail server listed in the SPF, then the receiving server will accept the email.
+To some extent, SPF prevents email spam caused by forged sender addresses: emails from a domain will not be accepted unless the sending server is included in the domain’s SPF list.
+SPF uses TXT (text) records to map a domain name to one or more mail servers. The TXT record will include the SPF tag v=spf1 and other SPF qualifiers, mechanisms, and modifiers (see www.openspf.org).
